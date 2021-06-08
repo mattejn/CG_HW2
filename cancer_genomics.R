@@ -4,8 +4,8 @@ library(rpart.plot)
 library(class)
 library(dplyr)
 library(deepboost)
-library(keras)
-library(RSNNS)
+#library(keras)
+#library(RSNNS)
 
 # Read deletion information
 set.seed(4014)
@@ -50,13 +50,13 @@ rf_gridsearch <- train(status ~ .,
 print(rf_gridsearch)
 
 #KNN
-training_knn=training
-testing_knn=testing
-training_knn$status=as.factor(ifelse(training_knn$status == 1, "Yes", "No"))
-testing_knn$status=as.factor(ifelse(testing_knn$status == 1, "Yes", "No"))
-ctrl_knn=trainControl(method="repeatedcv",number=10,repeats = 3,classProbs=TRUE,summaryFunction = twoClassSummary)
-knn=train(status ~ ., data = training_knn, method = "knn", trControl = ctrl_knn, preProcess = c("center","scale"), tuneLength = 20)
-print(knn)
+#training_knn=training
+#testing_knn=testing
+#training_knn$status=as.factor(ifelse(training_knn$status == 1, "Yes", "No"))
+#testing_knn$status=as.factor(ifelse(testing_knn$status == 1, "Yes", "No"))
+#ctrl_knn=trainControl(method="repeatedcv",number=10,repeats = 3,classProbs=TRUE,summaryFunction = twoClassSummary)
+#knn_model=train(status ~., data = training_knn, method = "knn", ctrl_knn = ctrl_knn, preProcess = c("center","scale"), tuneLength = 20)
+#print(knn_model)
 
 #PLR
 ctrl_plr=trainControl(method="cv", number=10)
@@ -93,8 +93,8 @@ mlp = caret::train(status ~., data = training,
 # Evaluate algorithms
 pred_rf = predict(rf_gridsearch, newdata=testing)
 print(caret::confusionMatrix(pred_rf, testing$status, positive="1"))
-pred_knn=predict(knn, newdata=testing)
-caret::confusionMatrix(pred_knn, testing_knn$status, positive="Yes")
+#pred_knn=predict(knn, newdata=testing_knn)
+#caret::confusionMatrix(pred_knn, testing_knn$status, positive="Yes")
 pred_plr <- predict(plr,newdata = testing)
 print(caret::confusionMatrix(pred_plr, testing$status, positive="1"))
 pred_svm_l=predict(svm_linear,newdata = testing)
@@ -106,15 +106,17 @@ print(caret::confusionMatrix(pred_db, testing$status, positive="1"))
 pred_mlp=predict(mlp,newdata = testing)
 print(caret::confusionMatrix(pred_mlp, testing$status, positive="1"))
 
-#Not that it is statistically significant but DeepBoost 
-#performs the best with accuracy of 0.9617.
+#Depending on the run different algorithms perform the best.
+#My favorites would be Random Forest, Deep Boost or Multilayer perceptron.
+#However the differences are NOT statistically significant which leads me
+#to believe, that the data is pretty well linearly separable with a few outliers.
 #Of course there could be much more done in terms of
 #hyperparameter tuning for various algorithms but
 #that would require a more powerful computer than I have
 #and a lot of computational time.
 
 # Apply to unknown data
-pred = predict(db, newdata=unknown)
+pred = predict(mlp, newdata=unknown)
 print("Outcome prediction of unlabeled data")
 print(table(pred))
 unknown$status = pred
